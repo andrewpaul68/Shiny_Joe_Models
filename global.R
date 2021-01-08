@@ -55,7 +55,8 @@ source("Joe_curve.R")
 
 #Run Joe model
 scn.run.num<<-1
+scn.list.out<<-list() #create a new list to store output from each scenario
 source("Joe_model.R")
-
+scn.list.out[[scn.run.num]]<-list(ce.df=ce.df,sc.dose.df=sc.dose.df)
 
 

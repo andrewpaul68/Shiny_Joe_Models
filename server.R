@@ -7,7 +7,7 @@ function(input, output, session) {
     scn.run<<-strsplit(isolate(input$scn.names),",")[[1]]
     num.scn<-length(scn.run); scn.run.num<<-1
     withProgress(message="Run...Joe...run",value=0.5,{
-      scn.list.out<<-list() #create a list to store output from each scenario
+      scn.list.out<<-list() #create a new list to store output from each scenario
       for (i in 1:num.scn){
         #run model
         source("Joe_model.R")
