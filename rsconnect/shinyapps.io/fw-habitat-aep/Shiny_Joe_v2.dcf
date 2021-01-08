@@ -1,0 +1,12 @@
+name: Shiny_Joe_v2
+title: Shiny_Joe_v2
+username:
+account: fw-habitat-aep
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3276894
+bundleId: 4024090
+url: https://fw-habitat-aep.shinyapps.io/Shiny_Joe_v2/
+when: 1608763510.78633
+asMultiple: FALSE
+asStatic: FALSE
