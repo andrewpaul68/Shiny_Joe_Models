@@ -18,7 +18,7 @@ function(input, output, session) {
     rv.model$update<-rv.model$update+1 #trigger reactive variable for model
     rv.map$update<-rv.map$update+1  #trigger reactive variable for map
     rv.stress$update<-rv.stress$update+1 #activate re-plot of stressor dose
-    slider.dose<<-FALSE #set slider back to FALSE after a model run
+    #slider.dose<<-FALSE #set slider back to FALSE after a model run
   })#end observeEvent
   
   #mymap server function
@@ -65,7 +65,7 @@ function(input, output, session) {
       addProviderTiles("Stamen.Terrain") %>%
       flyTo(-114, 54, zoom = 5)
    
-    #add polygons...unfortunately this takes a long time
+    #add polygons
     m.base.map %>%
       addPolygons(data=HUC.Map,weight=2,col ='black',
                   fill=T,fillColor = HUC.Map@data$COLOR,
@@ -111,8 +111,9 @@ function(input, output, session) {
     }
   })
   
-  #Slider for stressor dose
+  #Sliders for stressor dose
   #only render if 1 HUC, 1 Stressor and 1 scenario selected
+  #first mean slider
   output$stress.slider<-renderUI({
     rv.model$update #reactive variable when model has been re-run
     #only show slider when 1 huc, 1 stressor and 1 scenario! These are all reactive
@@ -125,11 +126,28 @@ function(input, output, session) {
                   max=dose$Up_Limit[dose$HUC_ID==sel.huc.str&dose$Sub_Type==sel.str][1],
                   value=dose$Mean[dose$HUC_ID==sel.huc.str&dose$Sub_Type==sel.str][1])
     }else {
-       h4("Slider only appears if one HUC, one stressor and one scenario are selected.")
+       h4("Sliders only appears if one HUC, one stressor and one scenario are selected.")
     }
   })
   
-  #update dose table when slider is activated or changed
+  #second slider for SD (this might be better as numericInput??)
+  output$stress.slider.sd<-renderUI({
+    rv.model$update #reactive variable when model has been re-run
+    #only show slider when 1 huc, 1 stressor and 1 scenario! These are all reactive
+    if (length(input$sel.huc.str)==1&length(input$sel.str)==1&
+        length(strsplit(input$scn.names,",")[[1]])==1){
+      #rv.stress$update<-rv.stress$update+1 #activate re-plot and dose table update
+      #work with Sub_Type names (Sub_Type = main if not additive)
+      #set maximum SD to 2X mean dose level or 1 whichever is greater
+      max.sd.slide<-max(2*input$slider.dose.mn,1,na.rm=T)
+      sliderInput("slider.dose.sd","Set stressor SD",
+                  min=0,
+                  max=max.sd.slide,
+                  value=dose$SD[dose$HUC_ID==sel.huc.str&dose$Sub_Type==sel.str][1])
+    }
+  })
+  
+  #update dose table when mean slider is activated or changed
   #also remove the scenario name from CE tab
   observeEvent(input$slider.dose.mn,{
     #update dose table if slider has been activated  
@@ -141,19 +159,21 @@ function(input, output, session) {
     updateTextInput(session,"scn.names",value="<USER DEFINED>")
   })
   
-  # #trigger an update to dose table when new scenarios are entered
+  #update dose table when SD slider is activated or changed
+  #also remove the scenario name from CE tab
+  observeEvent(input$slider.dose.sd,{
+    #update dose table if slider has been activated  
+    dose$SD[dose$HUC_ID==sel.huc.str&          
+                dose$Sub_Type==sel.str]<<-input$slider.dose.sd 
+    rv.stress$update<-rv.stress$update+1 #activate re-plot of stressor dose
+    read.dose<<-FALSE #don't read in doses from Excel if using slider input
+    #remove scenario name in CE tab to 
+    updateTextInput(session,"scn.names",value="<USER DEFINED>")
+  })
+  
+  # #trigger an update to read dose table from Excel file when new scenarios
   observeEvent(input$scn.names,{
-  #   scn.run<<-strsplit(isolate(input$scn.names),",")[[1]]
-  #   if (length(scn.run)==1){
-  #     #read in stressor doses
-  #     #reading in an excel file
-  #     dose<<-read_xlsx(file.name.2,sheet=scn.run)
-  #     dose$HUC_ID<<-as.character(dose$HUC_ID)
-  #     #for NA sub stressor types replace with the main stressor name
-  #     dose$Sub_Type<<-ifelse(dose$Sub_Type=="N/A"|dose$Sub_Type=="NA",
-  #                           dose$Stressor,dose$Sub_Type)
-  #   }
-      read.dose<<-TRUE
+    read.dose<<-TRUE
   })
   
   #Stress-response function to plot

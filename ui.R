@@ -47,7 +47,8 @@ fluidPage(
       ),
       column(width=4,
              wellPanel(
-               uiOutput("stress.slider")
+               uiOutput("stress.slider"),
+               uiOutput("stress.slider.sd")
              )
       ),
       plotOutput("Str.HUC.plot")
