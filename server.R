@@ -36,14 +36,14 @@ function(input, output, session) {
     #uses the unquote !! of tidyeval with :=  (thanks Google)
     ce.mn<-dplyr::rename(ce.mn,!!HUC_Name:=HUC)
     HUC.Map@data<-join(HUC.Map@data,ce.mn,by=HUC_Name)
-    #set FSI colours
-    HUC.Map@data$COLOR[HUC.Map@data$mean>=0.98]<-"green"  #give 5 to HUCs that are darn close
-    HUC.Map@data$COLOR[HUC.Map@data$mean<0.98]<-"green"  #"light green" is producing black?
-    HUC.Map@data$COLOR[HUC.Map@data$mean<=0.7]<-"yellow"
-    HUC.Map@data$COLOR[HUC.Map@data$mean<=0.5]<-"orange"
-    HUC.Map@data$COLOR[HUC.Map@data$mean<=0.2]<-"red"
-    HUC.Map@data$COLOR[HUC.Map@data$mean<=0]<-"black"
-    HUC.Map@data$COLOR[is.na(HUC.Map@data$mean)]<-"grey"
+    #set FSI colours #for HTML colors: https://htmlcolorcodes.com/
+    HUC.Map@data$COLOR[HUC.Map@data$mean>=0.98]<-"#149813"  #give 5 to HUCs that are darn close #Dark green
+    HUC.Map@data$COLOR[HUC.Map@data$mean<0.98]<-"#01FC0F"  #"light green" is producing black? #Light green
+    HUC.Map@data$COLOR[HUC.Map@data$mean<=0.7]<-"#F4FB0E"#yellow
+    HUC.Map@data$COLOR[HUC.Map@data$mean<=0.5]<-"#FEB100" #orange
+    HUC.Map@data$COLOR[HUC.Map@data$mean<=0.2]<-"#FF0000" #red
+    HUC.Map@data$COLOR[HUC.Map@data$mean<=0]<-"#000000"#black
+    HUC.Map@data$COLOR[is.na(HUC.Map@data$mean)]<-"#797878" #grey
     #set FSI colour alphas based on 3*sd relative to 0.2
     HUC.Map@data$alpha<-1-(3*HUC.Map@data$sd)/0.2
     HUC.Map@data$alpha[HUC.Map@data$alpha<0.1]<-0.2  #keep minimum alpha at 0.2 for visibility
@@ -65,11 +65,17 @@ function(input, output, session) {
       addProviderTiles("Stamen.Terrain") %>%
       flyTo(-114, 54, zoom = 5)
    
+    #popup content
+    
+    popup_info <- paste("HUC:",HUC.Map$HUC_10,"\n","Name:",HUC.Map$NAME,"\n","Score:",round(HUC.Map@data$mean,3),sep = '<br/>')
+    
     #add polygons
     m.base.map %>%
       addPolygons(data=HUC.Map,weight=2,col ='black',
                   fill=T,fillColor = HUC.Map@data$COLOR,
-                  fillOpacity = HUC.Map@data$alpha) %>%
+                  fillOpacity = HUC.Map@data$alpha,
+                  popup = popup_info
+                  ) %>%
       addPolygons(data=HUC.Map,weight=HUC.Map@data$border,col='white',
                   fill=F) 
   }) #end mymap server function
@@ -143,7 +149,8 @@ function(input, output, session) {
       sliderInput("slider.dose.sd","Set stressor SD",
                   min=0,
                   max=max.sd.slide,
-                  value=dose$SD[dose$HUC_ID==sel.huc.str&dose$Sub_Type==sel.str][1])
+                  value=dose$SD[dose$HUC_ID==sel.huc.str&dose$Sub_Type==sel.str][1],
+                  step = 0.01)
     }
   })
   
