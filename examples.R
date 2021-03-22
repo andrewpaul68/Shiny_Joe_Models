@@ -1,12 +1,15 @@
 #clean up workspace
 rm(list=ls())
 
-
-library(readxl)
+library(rgdal); library(plyr)
+library(shiny); library(DT); library(readxl)
+library(leaflet); library(tidyr); library(tidyselect)
+library(TruncatedDistributions); library(reshape2)
+library(rmapshaper)
 
 #example reading in an excel file
 file.name<-"stressor-response_example.xlsx"
-main.sheet<-read_xlsx(file.name,sheet="main")
+main.sheet<-read_xlsx(file.name,sheet="Main")
 #get rid of NAs in columns of interest and only select columns of interest
 main.sheet<-main.sheet[!is.na(main.sheet$Stressors),1:3]
 main.sheet
@@ -22,9 +25,9 @@ examp.list[[1]]<-examp.list[[1]][!is.na(examp.list[[1]][,1]),1:4]
 
 #example of using the approxfun and approx
 #phosphorus
-x<-examp.list[["phosphorus"]][,1]
-y<-examp.list[["phosphorus"]][,2]/100
-sd<-examp.list[["phosphorus"]][,3]
+x<-examp.list[[1]][,1]
+y<-examp.list[[1]][,2]/100
+sd<-examp.list[[1]][,3]
 
 
 #create approxfun must log x-axis as it's on log scale
@@ -41,7 +44,7 @@ plot(plot.x,plot.y,log="x",xlim=c(0.01,15))
 
 #uncertainty
 sims<-1000
-plot.y.unc<-matrix(NA,nrow = boot, ncol = length(plot.x))
+plot.y.unc<-matrix(NA,nrow = sims, ncol = length(plot.x))
 
 #let's build an approxfun with uncertainty
 approx.unc<-function(dose,x,y,sd,log=F){

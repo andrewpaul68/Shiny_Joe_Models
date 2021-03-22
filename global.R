@@ -58,5 +58,6 @@ scn.run.num<<-1
 scn.list.out<<-list() #create a new list to store output from each scenario
 source("Joe_model.R")
 scn.list.out[[scn.run.num]]<-list(ce.df=ce.df,sc.dose.df=sc.dose.df)
-
-
+str(scn.list.out[[scn.run.num]])
+head(scn.list.out[[scn.run.num]]$ce.df)
+head(scn.list.out[[scn.run.num]]$sc.dose.df)
