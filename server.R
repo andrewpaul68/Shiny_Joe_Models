@@ -63,11 +63,16 @@ function(input, output, session) {
     m.base.map <- leaflet() %>%
       addTiles() %>% # Add default OpenStreetMap map tiles
       addProviderTiles("Stamen.Terrain") %>%
-      flyTo(-114, 54, zoom = 5)
+      setView(-114, 54, zoom = 5)
+      #flyTo(-114, 54, zoom = 5)
    
     #popup content
-    
-    popup_info <- paste("HUC:",HUC.Map$HUC_10,"\n","Name:",HUC.Map$NAME,"\n","Score:",round(HUC.Map@data$mean,3),sep = '<br/>')
+    #change to be flexible with variable HUC_Name
+    #browser()
+    popup_info <- paste("HUC:",eval(parse(text=paste0("HUC.Map$",HUC_Name))),"\n","Name:",
+                        HUC.Map$NAME,"\n","Score:",round(HUC.Map@data$mean,3),sep = '<br/>')
+    # popup_info <- paste("HUC:",HUC.Map$HUC_10,"\n","Name:",
+    #                     HUC.Map$NAME,"\n","Score:",round(HUC.Map@data$mean,3),sep = '<br/>')
     
     #add polygons
     m.base.map %>%

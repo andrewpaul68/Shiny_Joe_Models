@@ -25,23 +25,23 @@ beta_param<-function(mn,sd){
   out<-NULL
   try(out<-suppressWarnings(fsolve(F,x0=c(ainit,binit))),silent=T)
   #if a solution is not found sd may be too large for the given mean
-  #reduce sd by 10% and try again
+  #reduce sd by 10% and try again...or mean is near 0 or 1
   iter<-1
-  if (is.null(out)){
+  #if (is.null(out)){ ###legacy redundant code has been commented out
     while(is.null(out)){
       if (iter>3) break #only try this 3 times
       sd<-sd*0.9
       print(paste0("try#",iter," mean=",mn," sd=",sd))
-      F <- function(x){
-        Fmn <- x[1]/(x[1]+x[2])-mn
-        Fvar<- x[1]*x[2]/((x[1]+x[2])^2*(x[1]+x[2]+1))-sd^2
-        return(c(Fmn,Fvar))
-      }
-      ainit<-1  ; binit<-ainit/mn-ainit
+      # F <- function(x){
+      #   Fmn <- x[1]/(x[1]+x[2])-mn
+      #   Fvar<- x[1]*x[2]/((x[1]+x[2])^2*(x[1]+x[2]+1))-sd^2
+      #   return(c(Fmn,Fvar))
+      # }
+      # ainit<-1  ; binit<-ainit/mn-ainit
       try(out<-suppressWarnings(fsolve(F,x0=c(ainit,binit))),silent=T)
       iter<-iter+1
     }
-  }
+  #}
   #if a solution is still not found then set alpha and beta 
   #parameters to the uniform distribution of the beta (i.e., alpha=1,beta=1)
   if (is.null(out)) out$x<-c(1,1)
@@ -90,7 +90,7 @@ mn.sd.huc<-function(df){
 ce.func<-function(df){
   #separate stressors without a minimum interaction 
   sys.cap.no.int<-df$sys.cap[df$int.type!="Minimum"]
-  #for those with a minimum interaction take the minimum
+  #from those with a minimum interaction...which require the minimum
   sys.cap.min<-tapply(df$sys.cap[df$int.type=="Minimum"],df$link[df$int.type=="Minimum"],min)
   #AT THIS POINT NO OTHER INTERACTIONS ARE CONSIDERED
   #NOTE - Total mortality is addressed prior to calculation of system capacity 
@@ -121,7 +121,7 @@ sys.cap.func<-function(f.dose.df,f.main.df,f.stressor.df,
       #if mean < 0 change mean to minimum limit (can't have zero or negative on log scale)
       mn.val<-ifelse(f.dose.df$Mean[i]<=0,
                      f.dose.df$Low_Limit[i],f.dose.df$Mean[i])
-      #If SD zero adjust to a very small number
+      #If SD zero repeat mean n.sims ***no longer adjusts SD to a very small number
       if (f.dose.df$SD[i]==0){
         rnd.dose.mat[i,]<-rep(mn.val,n.sims)
       }else {

@@ -25,14 +25,14 @@ MC.sims<<-100
 
 #stressor and stressor-response files
 file.name<<-paste0(getwd(),"/ARTR_Joe_model/stressor-response_fixed_ARTR.xlsx")
-file.name.2<<-paste0(getwd(),"/ARTR_Joe_model/stressor_magnitude_fixed_ARTR.xlsx")
+file.name.2<<-paste0(getwd(),"/ARTR_Joe_model/stressor_magnitude_unc_ARTR.xlsx")
 #ShapeFile directory, filenames and HUC name within ShapeFiles
 Shapefile.directory<<-"/ARTR_Joe_model/ARTR_HUC10_shapefile"
 Shapefile.name<<-"ARTR_Range_HUC10_all"
 HUC_Name<<-"HUC_10"
 
 #scenarios to run
-scn.run<<-"base"
+scn.run<<-"base_unc"
 #Boolean to trigger doses read from file
 read.dose<<-TRUE
 

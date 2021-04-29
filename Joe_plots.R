@@ -37,10 +37,11 @@ stres.resp.plot<-function(func.list,min=0,max=100,seq.num=1000,
   #create data.frame to store values
   df<-data.frame(x=as.numeric(),x.tran=as.numeric(),y=as.numeric())
   for (i in 1:length(x.tran)){
-    y<-tbeta_rnd(mn_est=func.list[[1]](x.tran[i]),
+    y<-replicate(sims,tbeta_rnd(mn_est=func.list[[1]](x.tran[i]),
                            sd_est=func.list[[2]](x.tran[i]),
                            low.limit=func.list[[3]](x.tran[i]),
-                           up.limit=func.list[[4]](x.tran[i]))
+                           up.limit=func.list[[4]](x.tran[i])),
+                 simplify = "vector")
     df<-rbind(data.frame(x=rep(x[i],sims),x.tran=rep(x.tran[i],sims),y=y),
               df)
   }
