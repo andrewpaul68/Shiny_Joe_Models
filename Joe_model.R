@@ -28,8 +28,8 @@ if (read.dose){
 #Get unique HUCs and stressors.
 hucs<-unique(dose$HUC_ID)
 hucs
-stressors<-unique(dose$Stressor)
-stressors
+#stressors<-unique(dose$Stressor)
+#stressors
 
 
 #Output is going to be stored in a 3D array to start.
@@ -74,11 +74,19 @@ if (any(is.na(dose.values))) message("ERROR - At least one NA in stressor values
 #adply is really slow
 #system.time(sc.df<-adply(sys.capacity,c(1,2,3),function(x) data.frame(sys.cap=x)))
 #melt is rocket fuel!!
+#need to add "ID:" to huc names as melt drops "0" at the start of a huc name
+row.names(sys.capacity)<-paste0("ID:",row.names(sys.capacity))
 system.time(sc.df<-reshape2::melt(sys.capacity))
-head(sc.df)
 #do the same for doses as this is useful output
 #dose.df<-adply(dose.values,c(1,2,3),function(x) data.frame(dose=x))
+row.names(dose.values)<-paste0("ID:",row.names(dose.values))
 dose.df<-reshape2::melt(dose.values)
+#now delete "ID:" from all the huc names 
+row.names(sys.capacity)<-substring(row.names(sys.capacity),4)
+sc.df$Var1<-substring(sc.df$Var1,4)
+row.names(dose.values)<-substring(row.names(dose.values),4)
+dose.df$Var1<-substring(dose.df$Var1,4)
+head(sc.df)
 head(dose.df)
 
 #rename columns
