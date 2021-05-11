@@ -15,37 +15,27 @@ library(pracma) #needed for fsolve
 #function to estimate beta parameters
 #given mean (rates) and SD for the
 #the "untruncated" beta distribution
-beta_param<-function(mn,sd){
-  F <- function(x){
-    Fmn <- x[1]/(x[1]+x[2])-mn
-    Fvar<- x[1]*x[2]/((x[1]+x[2])^2*(x[1]+x[2]+1))-sd^2
-    return(c(Fmn,Fvar))
-  }
-  ainit<-1  ; binit<-ainit/mn-ainit
-  out<-NULL
-  try(out<-suppressWarnings(fsolve(F,x0=c(ainit,binit))),silent=T)
-  #if a solution is not found sd may be too large for the given mean
-  #reduce sd by 10% and try again...or mean is near 0 or 1
-  iter<-1
-  #if (is.null(out)){ ###legacy redundant code has been commented out
-    while(is.null(out)){
-      if (iter>3) break #only try this 3 times
-      sd<-sd*0.9
-      print(paste0("try#",iter," mean=",mn," sd=",sd))
-      # F <- function(x){
-      #   Fmn <- x[1]/(x[1]+x[2])-mn
-      #   Fvar<- x[1]*x[2]/((x[1]+x[2])^2*(x[1]+x[2]+1))-sd^2
-      #   return(c(Fmn,Fvar))
-      # }
-      # ainit<-1  ; binit<-ainit/mn-ainit
-      try(out<-suppressWarnings(fsolve(F,x0=c(ainit,binit))),silent=T)
-      iter<-iter+1
-    }
-  #}
-  #if a solution is still not found then set alpha and beta 
-  #parameters to the uniform distribution of the beta (i.e., alpha=1,beta=1)
-  if (is.null(out)) out$x<-c(1,1)
-  return(out$x)
+#updated using analytical solution from Kyle Wilson
+beta_param<-function(mean,sd){
+  #can't have a mean for the beta at 0 or 1, if at boundary
+  #shift away by 0.001
+  message.mean <- ifelse(mean==0|mean==1,
+                    "Warning - Mean for beta at 0 or 1, shifted from boundary by 0.001",
+                    "Mean for beta okay") # mean warning
+  mean<-ifelse(mean==0,0.001,ifelse(mean==1,0.999,mean)) #crappy nested ifelse statement
+  #the sd can't be too large either, use CV to check and use Kyle's truncation of CV
+  #if needed
+  cv <- sd/mean
+  message.sd <- ifelse(((mean*cv)^2)>(mean*(1-mean)),
+                    "; Warning - truncating CV for beta at sqrt(mean*(1-mean))/mean",
+                    "; CV for beta okay") # sd warning
+  cv <- ifelse(((mean*cv)^2)>(mean*(1-mean)),
+               sqrt(mean*(1-mean))/mean,cv) # apply a truncation, if needed
+  sd <- mean*cv
+  alpha <- -((mean*(mean^2+sd^2-mean))/sd^2)
+  beta <- alpha/mean-alpha
+  return(list(alpha=alpha,beta=beta,message.mean=message.mean,
+              message.sd=message.sd))
 }
 ##################################
 
@@ -62,7 +52,7 @@ tbeta_rnd<-function(mn_est,sd_est,low.limit=0,up.limit=1){
       rnd.est[i]<-mn_est[i] #simply return the mean estimates
     }else{
       f_beta<-beta_param(mn_est[i],sd_est[i])
-      rnd.est[i]<-rtbeta(1,alpha=f_beta[1],beta=f_beta[2],
+      rnd.est[i]<-rtbeta(1,alpha=f_beta$alpha,beta=f_beta$beta,
                       a=ifelse(is.na(low.limit[i]),0,low.limit[i]),
                       b=ifelse(is.na(up.limit[i]),1,up.limit[i]))
     }
