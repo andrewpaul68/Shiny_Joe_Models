@@ -28,8 +28,11 @@ if (read.dose){
 #Get unique HUCs and stressors.
 hucs<-unique(dose$HUC_ID)
 hucs
-#stressors<-unique(dose$Stressor)
-#stressors
+#overwrite the variable stressors with those from the dose table
+#this allows the number of stressors that are run to be driven
+#by those defined in the dose table and not the stressor-response functions.
+stressors<-unique(dose$Stressor)
+stressors
 
 
 #Output is going to be stored in a 3D array to start.
